@@ -1,0 +1,231 @@
+---
+title: "Report"
+author: "Jingyi Niu"
+date: "October 19, 2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
+```
+
+
+## Data Manipulation
+
+The raw data contains three different products: STRAWBERRY, RASPBERRY, STRAWBERRY. Our interest is focus on the RASPBERRY data. Therefore, the `filter` function in `dplyr` package is been used to extract all data about RASPBERRY.
+
+The main difficult in data manipulation is that some key information are combined togather in a single variable, for example: **Data Item** contains the type information, and the type information contains three key informations (ACRES HARVESTED, PRODUCTION, YIELD).
+
+To extrac these informations, the `separate` function in package `tidyr` is been used for many times.
+
+Furthermore, the variable `Value` in this dataset is not stored in numeric for two reasons:
+1. the value is in the format of `123,456,789`, the comma needs to be remove.
+2. there exists `(D)` values.
+
+To do our data analysis, the variable `Value` need to be converted into numeric. The `str_replace_all` function in the `stringr` package is been used to do this conversion.
+
+
+Now the data is been manipulated into a tidy format, like this:
+
+```{r echo=F}
+library(tidyverse)
+library(magrittr)
+load("./04_rasp.Rdata")
+```
+
+```{r echo=F}
+head(dat2, 5) %>% knitr::kable() 
+```
+
+
+It can be noticed that there exists many NA in the variable `YIELD` and `ACRES HARVESTED`. 
+
+## The analysis of Harvested Areas
+
+In this part, we focus on the Harvested Areas(in Acres).
+
+The Harvested Areas of states in 2015 are listed below:
+
+```{r echo = F}
+# ACRES_HARVESTED in Acre in 2015
+dat2 %>% 
+  filter(Year == 2015) %>%
+  group_by(State) %>%
+  arrange(desc(ACRES_HARVESTED)) %>%
+  select(-PRODUCTION, -YIELD) %>% knitr::kable()
+```
+
+```{r echo = F}
+# plot
+dat2 %>% 
+  filter(Year == 2015) %>%
+  ggplot(aes(x = State, y = ACRES_HARVESTED)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Area of Harvested in 2015")
+```
+
+
+The states which has the top 2 Harvested Areas are listed below:
+
+```{r echo = F}
+# ACRES_HARVESTED in Acre top 2
+dat2 %>% 
+  group_by(Year) %>%
+  # arrange(desc(ACRES_HARVESTED)) %>%
+  top_n(2, ACRES_HARVESTED) %>%
+  select(-PRODUCTION, -YIELD) %>% knitr::kable()
+```
+
+The Harvested Areas of the last 5 years:
+
+```{r echo = F}
+# plot
+dat2 %>% 
+  ggplot(aes(x = Year, y = ACRES_HARVESTED, color = State)) +
+  geom_line() +
+  labs(title = "Area of Harvested of the last 5 years")
+```
+
+From the above table and graph, it can be seen that :
+
+1. The Area of Harvested of 2 States(CALIFORNIA, WASHINGTON) are much higher than OREGON
+2. Data missing for year 2018 and 2019.
+3. The Area of Harvested of California was decreasing.
+
+
+## The analysis of PRODUCTION
+
+In this part, we focus on the PRODUCTION(in lbs).
+
+The PRODUCTION of states in 2015 are listed below:
+
+```{r echo = F}
+# PRODUCTION (in lbs) in 2015
+dat2 %>% 
+  filter(Year == 2015) %>%
+  group_by(State) %>%
+  arrange(desc(PRODUCTION)) %>%
+  select(-YIELD, -ACRES_HARVESTED) %>% knitr::kable()
+
+# plot
+dat2 %>% 
+  filter(Year == 2015) %>%
+  ggplot(aes(x = State, y = PRODUCTION)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "PRODUCTION (in lbs) in 2015")
+```
+
+
+The states which has the top 2 PRODUCTION are listed below:
+
+```{r}
+# PRODUCTION (in lbs)  top 3
+dat2 %>% 
+  group_by(Year) %>%
+  top_n(2, PRODUCTION) %>%
+  select(-YIELD, -ACRES_HARVESTED) %>% knitr::kable()
+```
+
+The PRODUCTION of the last 5 years:
+
+```{r}
+dat2 %>% 
+  ggplot(aes(x = Year, y = PRODUCTION, color = State)) +
+  geom_line() +
+  labs(title = "PRODUCTION (in lbs) of the last 5 years")
+
+```
+
+From the above table and graph, it can be seen that :
+
+1. The Production of 2 States(CALIFORNIA, WASHINGTON) are much higher than OREGON
+2. Data missing for Oregon after year 2017.
+3. The Production of 2 States are keep decreasing for the last 5 years.
+
+
+
+## The analysis of YIELD
+
+In this part, we focus on the YIELD(in lbs per Acre).
+
+The YIELD of states in 2015 are listed below:
+
+```{r echo = F}
+# YIELD in  lbs per Acre  in 2015
+dat2 %>% 
+  filter(Year == 2015) %>%
+  group_by(State) %>%
+  arrange(desc(YIELD)) %>%
+  select(-PRODUCTION, -ACRES_HARVESTED) %>% knitr::kable()
+
+# plot
+dat2 %>% 
+  filter(Year == 2015) %>%
+  ggplot(aes(x = State, y = YIELD)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "YIELD (in lbs per Acre) in 2015")
+```
+
+The states which has the top 3 YIELD are listed below:
+
+```{r echo = F}
+# YIELD (in lbs per Acre) top 3
+dat2 %>% 
+  group_by(Year) %>%
+  top_n(2, YIELD) %>%
+  select(-PRODUCTION, -ACRES_HARVESTED) %>% knitr::kable()
+```
+
+The YIELD of the last 5 years:
+
+```{r}
+# plot
+dat2 %>% 
+  ggplot(aes(x = Year, y = YIELD, color = State)) +
+  geom_line() +
+  labs(title = "YIELD (in lbs per Acre) of the last 5 years")
+```
+
+From the above table and graph, it can be seen that :
+
+1. The YIELD of Clifornia was decreasing from 2016 to 2017.
+2. Data missing for year 2018 and 2019.
+3. The YIELD of Clifornia is much higher than the rest.
+
+**It is very interesting that 3 States (CALIFORNIA, OREGON, WASHINGTON) has much higher YIELD(in lbs per Acre) than the other states. Further study may be needed.**
+
+
+
+## YIELD on the US Map
+
+In this part, we plot the YIELD of 3 States on the map of United States.
+
+```{r echo = F}
+library(usmap)
+
+dat2 %>%
+  filter(Year == 2015) %>%
+  select(State, YIELD) %>%
+  mutate(State = str_to_title(State)) %>%
+  right_join(statepop, by = c("State" = "full")) -> dat3
+  
+plot_usmap(data = dat3, regions = "states", values = "YIELD", color = "white") + 
+  scale_fill_continuous(name = "YIELD", low = "yellow", high = "red") +
+  theme(legend.position = "right")
+```
+
+It can be seen that the State that have much higher YIELD is located in the middle of **West Coast**. The weather may be a great reason of the high YIELD.
+
+
+
+
+
+
+
+
+
+
+
